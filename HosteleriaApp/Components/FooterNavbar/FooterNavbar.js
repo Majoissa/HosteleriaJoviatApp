@@ -3,16 +3,26 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ListViewComponent from "../MainScreen/ListView";
 
-function FooterNavbar({ setActiveContent }) {
+function FooterNavbar({
+  setActiveContent,
+  isUserLoggedIn,
+  navigation,
+  setShowProfile,
+}) {
   const [activeButton, setActiveButton] = useState("Home");
 
   const handlePress = (buttonName) => {
     setActiveButton(buttonName);
-    /*if (activeButton === "Home") {
-            setActiveContent("ListView")
-        }*/
     setActiveContent(buttonName);
-    //console.log("pressed!")
+  };
+
+  const handleProfilePress = () => {
+    if (isUserLoggedIn) {
+      setShowProfile(true); // Indicar a HomeScreen que muestre el componente de perfil
+    } else {
+      // Si el usuario no está autenticado, navega a la pantalla de inicio de sesión
+      navigation.navigate("Login");
+    }
   };
 
   return (
@@ -22,11 +32,11 @@ function FooterNavbar({ setActiveContent }) {
           styles.iconText,
           activeButton === "Profile" && styles.activeButton,
         ]}
-        onPress={() => handlePress("Profile")}
+        onPress={handleProfilePress}
       >
         <Ionicons
           name={activeButton === "Profile" ? "person" : "person-outline"}
-          size={30}
+          size={25}
           color="white"
         />
         <Text style={styles.text}>Profile</Text>
@@ -40,7 +50,7 @@ function FooterNavbar({ setActiveContent }) {
       >
         <Ionicons
           name={activeButton === "Home" ? "md-home-sharp" : "md-home-outline"}
-          size={30}
+          size={25}
           color="white"
         />
         <Text style={styles.text}>Home</Text>
@@ -54,7 +64,7 @@ function FooterNavbar({ setActiveContent }) {
       >
         <Ionicons
           name={activeButton === "Favorite" ? "md-heart" : "md-heart-outline"}
-          size={30}
+          size={25}
           color="white"
         />
         <Text style={styles.text}>Favorite</Text>

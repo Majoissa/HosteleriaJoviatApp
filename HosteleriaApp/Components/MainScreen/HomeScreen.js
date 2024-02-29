@@ -1,4 +1,3 @@
-// HomeScreen.js
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import MapViewComponent from "./MapView";
@@ -6,32 +5,22 @@ import ListViewComponent from "./ListView";
 import SwitchBar from "./SwitchBar";
 import Navbar from "../Navbar/Navbar";
 import FooterNavbar from "../FooterNavbar/FooterNavbar";
+import ProfileScreen from "../Profile/ProfileScreen";
 import { useNavigation } from "@react-navigation/native";
 import { db } from "../FirebaseConfig";
 import { collection, getDocs, query, limit } from "firebase/firestore";
-
-// Define or import your DATA property
-/*const DATA = Array.from({ length: 20 }, (_, index) => ({
-  id: index.toString(),
-  title: `Restaurante ${index + 1}`,
-  description: `Description del restaurante ${index + 1}`,
-  imageUrl: `https://upload.wikimedia.org/wikipedia/commons/1/1d/Restaurant_in_The_Mus%C3%A9e_d%27Orsay.jpg`,
-  workers: Array.from({ length: 3 }, (_, workerIndex) => ({
-    id: `worker${index + 1}-${workerIndex + 1}`,
-    name: `Trabajador ${workerIndex + 1}`,
-    workerImageUrl: `https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/default-profile-picture-male-icon.png`,
-  })),
-}));*/
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 function HomeScreen() {
   const [filteredData, setFilteredData] = useState([]);
   const [restaurantsData, setRestaurantsData] = useState([]);
   const [isMapView, setIsMapView] = useState(false);
+  const [activeButton, setActiveButton] = useState("Home");
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const navigation = useNavigation();
 
-  const [activeContent, setActiveContent] = useState("Home");
-
-  //funcion para obtener los datos de los restaurantes
+  // Función para obtener los datos de los restaurantes
   const fetchRestaurantsData = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "Restaurant"));
@@ -40,17 +29,17 @@ function HomeScreen() {
         const restaurantData = {
           id: doc.id,
           ...doc.data(),
-          workers: [], //preparamos para llenar con datos de los alumnos
+          workers: [], // Preparamos para llenar con datos de los alumnos
         };
         restaurants.push(restaurantData);
       });
       setRestaurantsData(restaurants);
     } catch (error) {
-      console.error("error al obtener los datos de los restaurantes", error);
+      console.error("Error al obtener los datos de los restaurantes", error);
     }
   };
 
-  //funcion para obtener los alumnos del restaurante
+  // Función para obtener los alumnos del restaurante
   const fetchWorkersData = async (restaurantId) => {
     try {
       const workersQuery = query(
@@ -87,7 +76,7 @@ function HomeScreen() {
           return { ...restaurant, workers }; // Retorna el restaurante con los trabajadores.
         });
         const updatedRestaurantsData = await Promise.all(promises);
-        setFilteredData(updatedRestaurantsData); // Actualiza el estado con la nueva información.
+        setFilteredData(updatedRestaurantsData);
       }
     };
 
@@ -97,14 +86,51 @@ function HomeScreen() {
   const toggleView = () => {
     setIsMapView(!isMapView);
   };
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsUserLoggedIn(!!user);
+    });
+
+    // Desuscribirse al desmontar
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    // Llama a fetchRestaurantsData aquí para cargar los datos al iniciar
+    fetchRestaurantsData();
+  }, []);
+
+  const handleProfilePress = () => {
+    if (isUserLoggedIn) {
+      // Si el usuario está autenticado, establece el estado para mostrar la pantalla de perfil
+      setShowProfile(true);
+    } else {
+      // Si el usuario no está autenticado, navega a la pantalla de inicio de sesión
+      navigation.navigate("Login");
+    }
+  };
 
   const renderContent = () => {
     if (isMapView) {
       return <MapViewComponent />;
-    } else if (activeContent === "Home") {
+    } else if (activeButton === "Home" && showProfile) {
+      return (
+        <ProfileScreen
+          isUserLoggedIn={isUserLoggedIn}
+          navigation={navigation}
+        />
+      );
+    } else if (activeButton === "Home") {
       return <ListViewComponent data={filteredData} navigation={navigation} />;
+    } else if (activeButton === "Profile") {
+      return (
+        <ProfileScreen
+          isUserLoggedIn={isUserLoggedIn}
+          navigation={navigation}
+        />
+      );
     }
-    //console.log(activeContent)
   };
 
   return (
@@ -118,11 +144,18 @@ function HomeScreen() {
       />
 
       <View style={styles.contentContainer}>
-        <SwitchBar isMapView={isMapView} onToggleView={toggleView} />
+        {activeButton !== "Profile" && activeButton !== "Favorite" && (
+          <SwitchBar isMapView={isMapView} onToggleView={toggleView} />
+        )}
         <ScrollView style={styles.scrollView}>{renderContent()}</ScrollView>
       </View>
 
-      <FooterNavbar setActiveContent={setActiveContent} />
+      <FooterNavbar
+        setActiveContent={setActiveButton}
+        isUserLoggedIn={isUserLoggedIn}
+        navigation={navigation}
+        setShowProfile={setShowProfile}
+      />
     </View>
   );
 }

@@ -8,6 +8,7 @@ import { QuerySnapshot, collection, getDocs } from "firebase/firestore";
 const MapViewComponent = () => {
   const mapRef = useRef(null);
   const [restaurants, setRestaurants] = useState([]);
+  const [isMapReady, setIsMapReady] = useState(false);
 
   useEffect(() => {
     // Obtener datos de Firebase al montar el componente
@@ -21,19 +22,19 @@ const MapViewComponent = () => {
     };
 
     fetchData();
-
-    if (mapRef.current) {
-      setTimeout(() => {
-        mapRef.current.fitToSuppliedMarkers(
-          restaurants.map((r) => r.id),
-          {
-            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-            animated: true,
-          }
-        );
-      }, 1000);
-    }
   }, []);
+
+  useEffect(() => {
+    if (mapRef.current && restaurants.length > 0) {
+      mapRef.current.fitToSuppliedMarkers(
+        restaurants.map((r) => r.id),
+        {
+          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+          animated: true,
+        }
+      );
+    }
+  }, [isMapReady, restaurants]);
 
   return (
     <View style={styles.mapContainer}>
@@ -46,12 +47,15 @@ const MapViewComponent = () => {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
+        onMapLoaded={() => setIsMapReady(true)}
       >
         {/* Marcador para la ubicación inicial */}
         <Marker
           coordinate={{
             latitude: 41.72196997077061,
             longitude: 1.81823808510676,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
           }}
           title="Restaurant Joviat"
           identifier="initial_marker"
@@ -62,6 +66,7 @@ const MapViewComponent = () => {
         {/* Marcadores para los restaurantes de Firebase */}
         {restaurants.map((restaurant) => (
           <Marker
+            key={restaurant.id}
             coordinate={{
               latitude: restaurant.latitud,
               longitude: restaurant.longitud,

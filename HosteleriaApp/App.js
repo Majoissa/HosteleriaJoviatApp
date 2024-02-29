@@ -3,7 +3,7 @@ import LoginScreen from "./Screens/LoginScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import HomeScreen from "./Components/MainScreen/HomeScreen";
 import RestaurantScreen from "./Components/RestaurantScreen/RestaurantScreen";
-
+import ProfileScreen from "./Components/Profile/ProfileScreen";
 
 const Stack = createStackNavigator();
 export default function App() {
@@ -23,10 +23,14 @@ export default function App() {
 
         <Stack.Screen
           name="Restaurant"
-          component={RestaurantScreen }
+          component={RestaurantScreen}
           options={{ headerShown: false }}
         />
-
+        <Stack.Screen
+          name="ProfileScreen"
+          component={ProfileScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
