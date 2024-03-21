@@ -8,6 +8,7 @@ import FooterNavbar from "../FooterNavbar/FooterNavbar";
 import { useNavigation } from "@react-navigation/native";
 import { db } from "../FirebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
+import { useTranslation } from 'react-i18next';
 
 function HomeScreen() {
   const [filteredData, setFilteredData] = useState([]);
@@ -16,7 +17,7 @@ function HomeScreen() {
   const [isMapView, setIsMapView] = useState(false);
   const navigation = useNavigation();
   const [activeContent, setActiveContent] = useState("Home");
-
+  const { t } = useTranslation();
   // Función para obtener los datos de los restaurantes
   const fetchRestaurantsData = async () => {
     try {
@@ -80,6 +81,8 @@ function HomeScreen() {
   useEffect(() => {
     // Obtener los datos de los restaurantes al montar el componente
     fetchRestaurantsData();
+    
+    console.log(t('welcome'));
   }, []);
 
   const toggleView = () => {

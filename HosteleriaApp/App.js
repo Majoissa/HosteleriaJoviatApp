@@ -8,6 +8,8 @@ import FavRestScreen from "./Components/FavoritesScreen/FavRestScreen";
 import Profile from "./Components/Profile/Profile";
 import { AuthProvider } from "./AuthContext";
 import JoviatScreen from "./Components/JoviatScreen/JoviatScreen";
+import 'intl-pluralrules'
+import i18n from "./i18n";
 
 const Stack = createStackNavigator();
 
